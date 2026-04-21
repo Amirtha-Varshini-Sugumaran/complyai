@@ -1,38 +1,50 @@
 # ComplyAI
 
-ComplyAI is a portfolio-grade multi-tenant SaaS MVP for EU privacy and compliance support. It helps SMEs manage personal-data inventory, consent records, data subject requests, audit history, retention awareness, and AI-assisted risk review in one tenant-aware workspace.
+ComplyAI is a multi-tenant SaaS MVP for EU privacy and compliance support. It helps small and medium-sized companies manage personal-data inventory, consent records, data subject requests, audit history, retention awareness, and AI-assisted risk review in one tenant-aware workspace.
 
-This project is intentionally built as a modular monolith. The goal is to demonstrate clean full-stack engineering, explicit tenant isolation, strong API design, and realistic SaaS tradeoffs without hiding complexity behind microservices.
+The application is built as a modular monolith: one deployable system with clear module boundaries. That keeps the project practical to run locally while still showing how a real SaaS product can separate concerns across authentication, tenancy, compliance workflows, audit logging, reporting, and AI analysis.
 
 ## Why This Matters
 
-Many SMEs need practical tooling for GDPR-oriented workflows, but they often lack a central system for inventory, request handling, consent evidence, and auditability. ComplyAI is designed as a technical compliance-support platform that helps operations teams work more consistently. It is not legal advice.
+GDPR-oriented operations often depend on scattered spreadsheets, emails, and manual reminders. ComplyAI provides a structured workflow for tracking personal data, consent evidence, subject requests, and compliance risks. It is designed as technical support software, not as legal advice.
 
-## Stack
+## Core Capabilities
+
+- Tenant-aware data isolation using explicit `tenant_id` fields
+- JWT authentication with role-based access control
+- Personal data inventory management
+- Consent record tracking with expired and missing-proof indicators
+- Data subject request workflow with controlled status transitions
+- Central audit logging for important actions
+- Dashboard metrics for inventory, consent, requests, retention, audit activity, and AI risk counts
+- Mock-first AI compliance analysis with a provider interface for future LLM integration
+- Dockerized local environment with PostgreSQL, backend, and frontend
+
+## Tech Stack
 
 - Backend: Java 21, Spring Boot 3.3, Spring Security, Spring Data JPA, Flyway, PostgreSQL, Actuator, springdoc OpenAPI
 - Frontend: React, TypeScript, Vite, React Router, React Query, Axios, Material UI
 - DevOps: Docker, Docker Compose, GitHub Actions
 - Testing: JUnit 5, Mockito, Spring Security Test, Testcontainers, Vitest, React Testing Library
-- AI: Mock-first compliance analysis provider with deterministic heuristics
+- AI: Deterministic mock compliance provider behind a pluggable interface
 
-## Architecture Summary
+## Architecture
 
-- Modular monolith with package-by-feature modules under [backend/src/main/java/com/complyai](C:\Users\amirt\OneDrive\Documents\Playground\complyai\backend\src\main\java\com\complyai)
-- Shared-database multi-tenancy using explicit `tenant_id`
-- Stateless JWT authentication and role-based access control
-- DTO-first REST APIs under `/api/v1/**`
-- Centralized audit logging for key actions
-- Flyway-managed schema and demo seed data
-- Mock AI provider abstraction for local/offline usability
+- Package-by-feature modular monolith under [`backend/src/main/java/com/complyai`](backend/src/main/java/com/complyai)
+- DTO-first REST API design under `/api/v1/**`
+- Shared database multi-tenancy with explicit repository and service-level tenant checks
+- Stateless JWT security with Spring Security method authorization
+- Flyway migrations for schema creation and demo seed data
+- Centralized exception handling with consistent API error responses
+- Audit log service used by authentication, inventory, consent, requests, and AI analysis
 
-## Repo Layout
+## Repository Layout
 
-- [backend](C:\Users\amirt\OneDrive\Documents\Playground\complyai\backend)
-- [frontend](C:\Users\amirt\OneDrive\Documents\Playground\complyai\frontend)
-- [docs](C:\Users\amirt\OneDrive\Documents\Playground\complyai\docs)
-- [infra](C:\Users\amirt\OneDrive\Documents\Playground\complyai\infra)
-- [scripts](C:\Users\amirt\OneDrive\Documents\Playground\complyai\scripts)
+- [`backend`](backend) - Spring Boot API, domain modules, migrations, and tests
+- [`frontend`](frontend) - Vite React SPA
+- [`docs`](docs) - architecture, security, API, deployment, and testing notes
+- [`infra`](infra) - Docker Compose and Nginx configuration
+- [`scripts`](scripts) - local helper scripts and seed notes
 
 ## Demo Credentials
 
@@ -46,15 +58,15 @@ All seeded demo users use the password `password`.
 - `compliance@blueharbor.dev`
 - `user@blueharbor.dev`
 
-Recommended demo account:
+Recommended account for exploring the main tenant-admin flow:
 
-- `tenantadmin@northwind.dev / password`
+```text
+tenantadmin@northwind.dev / password
+```
 
-## How To Run
+## Run With Docker
 
-### Docker full stack
-
-From [complyai](C:\Users\amirt\OneDrive\Documents\Playground\complyai):
+From the repository root:
 
 ```powershell
 docker compose -f .\infra\docker-compose.yml up --build
@@ -67,21 +79,19 @@ URLs:
 - Swagger UI: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 - Health: [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health)
 
-### Local backend
+## Run Locally
 
-Requires Java 21 and PostgreSQL.
+Backend requires Java 21 and PostgreSQL.
 
 ```powershell
-cd C:\Users\amirt\OneDrive\Documents\Playground\complyai\backend
+cd backend
 .\mvnw.cmd spring-boot:run
 ```
 
-### Local frontend
-
-Requires Node 20+.
+Frontend requires Node 20+.
 
 ```powershell
-cd C:\Users\amirt\OneDrive\Documents\Playground\complyai\frontend
+cd frontend
 npm install
 npm run dev
 ```
@@ -91,18 +101,20 @@ npm run dev
 Backend unit tests:
 
 ```powershell
-docker run --rm `
-  -e TESTCONTAINERS_RYUK_DISABLED=true `
-  -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal `
-  --add-host=host.docker.internal:host-gateway `
-  -v //var/run/docker.sock:/var/run/docker.sock `
-  -v C:\Users\amirt\OneDrive\Documents\Playground\complyai\backend:/workspace `
-  -w /workspace `
-  maven:3.9.9-eclipse-temurin-21 `
-  sh -lc "./mvnw -Dtest='AuthServiceTest,RequestWorkflowRulesTest,MockComplianceAiClientTest' test"
+cd backend
+.\mvnw.cmd test
 ```
 
-Backend integration tests:
+Frontend build and tests:
+
+```powershell
+cd frontend
+npm install
+npm run build
+npx vitest run --maxWorkers=1 --reporter=basic
+```
+
+Docker-based backend test example:
 
 ```powershell
 docker run --rm `
@@ -110,85 +122,43 @@ docker run --rm `
   -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal `
   --add-host=host.docker.internal:host-gateway `
   -v //var/run/docker.sock:/var/run/docker.sock `
-  -v C:\Users\amirt\OneDrive\Documents\Playground\complyai\backend:/workspace `
+  -v ${PWD}\backend:/workspace `
   -w /workspace `
   maven:3.9.9-eclipse-temurin-21 `
-  sh -lc "./mvnw -Dtest='PostgresIntegrationTest,ApiFlowIntegrationTest' test"
+  sh -lc "./mvnw test"
 ```
 
-Frontend build:
+## Key Workflows
 
-```powershell
-docker run --rm `
-  -v C:\Users\amirt\OneDrive\Documents\Playground\complyai\frontend:/workspace `
-  -w /workspace `
-  node:20-alpine `
-  sh -lc "npm run build"
-```
+- Login with a seeded user and receive a JWT
+- Create and list data inventory records
+- Create, assign, and transition data subject requests through the approved workflow
+- Create and update consent records while tracking expired or missing evidence
+- Review dashboard metrics and recent audit events
+- Run a mock AI compliance scan and persist the result
+- Verify tenant isolation through tenant-scoped API access
 
-Frontend tests:
+## Design Notes
 
-```powershell
-docker run --rm `
-  -v C:\Users\amirt\OneDrive\Documents\Playground\complyai\frontend:/workspace `
-  -w /workspace `
-  node:20-alpine `
-  sh -lc "npx vitest run --maxWorkers=1 --reporter=basic"
-```
-
-## What To Demo In 3–5 Minutes
-
-1. Log in as `tenantadmin@northwind.dev / password`.
-2. Open the dashboard and call out:
-   - inventory count
-   - missing consent evidence
-   - overdue requests
-   - recent audit events
-   - AI risk counts
-3. Go to Data Inventory and create a new record.
-4. Go to Consent Records and create a consent without proof, then update it and point out the expired/missing-proof indicators.
-5. Go to Requests and create a request, assign it, then move it through `SUBMITTED -> IN_REVIEW -> APPROVED -> COMPLETED`.
-6. Open Audit Logs and show the recorded events for login, inventory creation, consent update, request workflow, and AI analysis.
-7. Open AI Scan, paste risky text, and explain the mock provider abstraction plus persisted result/audit entry.
-
-## Interview Talking Points
-
-- Why explicit `tenant_id` filtering is easier to reason about than hidden multitenancy features
-- How JWT auth is wired into a stateless Spring Security setup
-- Why Flyway migrations plus seeded demo data improve reproducibility
-- How audit logging supports traceability across compliance workflows
-- Why the AI module is abstracted behind an interface with a deterministic mock implementation
-- How Docker Compose, CI, and Testcontainers support delivery discipline
+- Explicit tenant filtering is used instead of hidden ORM multitenancy so access boundaries stay visible in repositories and services.
+- Flyway migrations keep schema changes repeatable and make local setup predictable.
+- The AI module is intentionally mock-first, so the project works without external API keys while keeping a clean provider contract for future integrations.
+- Audit logging is append-only for traceability across compliance-sensitive workflows.
+- Docker Compose is the recommended local path because it runs PostgreSQL, backend, and frontend with consistent configuration.
 
 ## Debugging Notes
 
-- If Docker API calls fail, start Docker Desktop first
-- If Flyway reports a checksum mismatch, do not edit old applied migrations; prefer additive migrations
-- If the frontend loads but API calls fail in a browser, check `CORS_ORIGINS` and `VITE_API_BASE_URL`
-- If JWT calls fail, verify the backend `JWT_SECRET` matches the environment used at runtime
-
-## Current Demo-Ready Flows
-
-- UI login with JWT token storage and protected route access
-- Data Inventory create and list
-- Data Subject Request create, assign, valid transitions, invalid transition rejection, and history
-- Consent create/update plus summary issue counts
-- Dashboard summary with audit and AI risk counts
-- AI scan in mock mode with persisted results and audit logging
-- Tenant isolation on inventory, requests, and consent access
-
-## Screenshots
-
-- Login page screenshot: [login-page.png](C:\Users\amirt\OneDrive\Documents\Playground\complyai\login-page.png)
-- Additional screenshot placeholders can be added for dashboard, requests, and AI scan
+- If Docker API calls fail, start Docker Desktop first.
+- If Flyway reports a checksum mismatch, do not edit old applied migrations; add a new migration instead.
+- If the frontend loads but API calls fail, check `CORS_ORIGINS` and `VITE_API_BASE_URL`.
+- If JWT calls fail, verify that the backend `JWT_SECRET` matches the runtime environment.
 
 ## Known Limitations
 
-- Refresh tokens are not implemented
-- File ingestion is limited to pasted text and simple `.txt` / `.csv` content
-- AI output is deterministic mock analysis, not a real legal or compliance model
-- Frontend test execution is reliable with single-worker Vitest settings, but it is slower in constrained containers
-- Tenant billing, invitation email, and attachment storage are still roadmap items
+- Refresh tokens are not implemented.
+- File ingestion is limited to pasted text and simple `.txt` / `.csv` content.
+- AI output is deterministic mock analysis, not legal or regulatory advice.
+- Tenant billing, invitation email, and attachment storage are roadmap items.
 
 ## Future Improvements
 
@@ -197,7 +167,7 @@ docker run --rm `
 - Report exports and reminders
 - S3-backed attachment storage
 - Richer compliance rules engine
-- Real LLM provider integration with prompt/version observability
+- Real LLM provider integration with prompt and version observability
 
 ## Compliance Disclaimer
 
