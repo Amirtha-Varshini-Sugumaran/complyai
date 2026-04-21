@@ -8,6 +8,14 @@ The application is built as a modular monolith: one deployable system with clear
 
 GDPR-oriented operations often depend on scattered spreadsheets, emails, and manual reminders. ComplyAI provides a structured workflow for tracking personal data, consent evidence, subject requests, and compliance risks. It is designed as technical support software, not as legal advice.
 
+## AI-Assisted Development
+
+This project was built with AI as a delivery accelerator. I used AI to help structure the product scope, compare architecture options, draft implementation patterns, generate test ideas, improve documentation, and iterate faster across backend, frontend, and DevOps work.
+
+The important part is how AI was used: I treated it like a technical pair programmer, not an autopilot. I reviewed the generated suggestions, adapted them to the project goals, checked the code against the architecture, and kept the final decisions focused on maintainability, tenant safety, compliance workflows, and recruiter-readable delivery evidence.
+
+This shows practical AI fluency: turning a broad product idea into a working SaaS-style MVP, using AI to move faster while still applying engineering judgment, testing discipline, and clear communication.
+
 ## Core Capabilities
 
 - Tenant-aware data isolation using explicit `tenant_id` fields
