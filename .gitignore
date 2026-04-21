@@ -1,0 +1,14 @@
+backend/target/
+backend/app-extract/
+backend/app.jar
+backend/GenerateHash.java
+frontend/dist/
+frontend/node_modules/
+frontend/*.tsbuildinfo
+.edge-profile*/
+.git-publish/
+login-page.png
+.idea/
+.vscode/
+.DS_Store
+*.log

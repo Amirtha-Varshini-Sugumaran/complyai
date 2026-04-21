@@ -1,0 +1,10 @@
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/complyai}
+
+complyai:
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:8080}

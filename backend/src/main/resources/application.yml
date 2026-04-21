@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: complyai-backend
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/complyai}
+    username: ${DB_USERNAME:complyai}
+    password: ${DB_PASSWORD:complyai}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  jackson:
+    default-property-inclusion: non_null
+server:
+  servlet:
+    context-path: /
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+complyai:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:change-me-change-me-change-me-change-me}
+      access-token-expiration-minutes: ${JWT_EXPIRY_MINUTES:120}
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:5173}
+  ai:
+    mode: ${AI_MODE:mock}
+  compliance:
+    checker:
+      enabled: ${COMPLIANCE_CHECKER_ENABLED:true}
+  logging:
+    mask-sensitive-values: true
+
+logging:
+  level:
+    root: INFO
+    com.complyai: INFO
