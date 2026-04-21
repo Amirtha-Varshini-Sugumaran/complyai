@@ -1,4 +1,4 @@
-# ComplyAI
+# ComplyAI - Compliance SaaS MVP
 
 ComplyAI is a multi-tenant SaaS MVP for EU privacy and compliance support. It helps small and medium-sized companies manage personal-data inventory, consent records, data subject requests, audit history, retention awareness, and AI-assisted risk review in one tenant-aware workspace.
 
