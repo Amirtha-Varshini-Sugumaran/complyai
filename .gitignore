@@ -7,6 +7,7 @@ frontend/node_modules/
 frontend/*.tsbuildinfo
 .edge-profile*/
 .git-publish/
+local_only/
 login-page.png
 .idea/
 .vscode/
