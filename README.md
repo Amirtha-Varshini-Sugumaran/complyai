@@ -1,102 +1,131 @@
-# ComplyAI - Compliance SaaS MVP
+# ComplyAI
 
-ComplyAI is a multi-tenant SaaS MVP for EU privacy and compliance support. It helps small and medium-sized companies manage personal-data inventory, consent records, data subject requests, audit history, retention awareness, and AI-assisted risk review in one tenant-aware workspace.
+## Project Overview
 
-The application is built as a modular monolith: one deployable system with clear module boundaries. That keeps the project practical to run locally while still showing how a real SaaS product can separate concerns across authentication, tenancy, compliance workflows, audit logging, reporting, and AI analysis.
+ComplyAI is a multi-tenant compliance operations application for managing privacy-oriented workflows in a structured workspace. It helps teams track personal-data inventory, consent records, data subject requests, audit activity, compliance dashboard metrics, and AI-assisted risk review.
 
-## Why This Matters
+The system is implemented as a modular monolith: one deployable backend with clear package boundaries, a React frontend, PostgreSQL persistence, Flyway migrations, and a deterministic mock AI provider that can be replaced by a real provider later.
 
-GDPR-oriented operations often depend on scattered spreadsheets, emails, and manual reminders. ComplyAI provides a structured workflow for tracking personal data, consent evidence, subject requests, and compliance risks. It is designed as technical support software, not as legal advice.
+Key capabilities:
 
-## AI-Assisted Development
-
-This project was built with AI as a delivery accelerator. I used AI to help structure the product scope, compare architecture options, draft implementation patterns, generate test ideas, improve documentation, and iterate faster across backend, frontend, and DevOps work.
-
-The important part is how AI was used: I treated it like a technical pair programmer, not an autopilot. I reviewed the generated suggestions, adapted them to the project goals, checked the code against the architecture, and kept the final decisions focused on maintainability, tenant safety, compliance workflows, and recruiter-readable delivery evidence.
-
-This shows practical AI fluency: turning a broad product idea into a working SaaS-style MVP, using AI to move faster while still applying engineering judgment, testing discipline, and clear communication.
-
-## Core Capabilities
-
-- Tenant-aware data isolation using explicit `tenant_id` fields
-- JWT authentication with role-based access control
-- Personal data inventory management
-- Consent record tracking with expired and missing-proof indicators
-- Data subject request workflow with controlled status transitions
-- Central audit logging for important actions
-- Dashboard metrics for inventory, consent, requests, retention, audit activity, and AI risk counts
-- Mock-first AI compliance analysis with a provider interface for future LLM integration
-- Dockerized local environment with PostgreSQL, backend, and frontend
-
-## Tech Stack
-
-- Backend: Java 21, Spring Boot 3.3, Spring Security, Spring Data JPA, Flyway, PostgreSQL, Actuator, springdoc OpenAPI
-- Frontend: React, TypeScript, Vite, React Router, React Query, Axios, Material UI
-- DevOps: Docker, Docker Compose, GitHub Actions
-- Testing: JUnit 5, Mockito, Spring Security Test, Testcontainers, Vitest, React Testing Library
-- AI: Deterministic mock compliance provider behind a pluggable interface
+- Tenant-aware authentication and role-based authorization.
+- Personal data inventory management.
+- Consent record tracking and status visibility.
+- Data subject request assignment, workflow transitions, and audit trail.
+- Tenant-scoped dashboard metrics.
+- Central audit logging for sensitive actions.
+- Mock-first AI compliance analysis behind a provider interface.
+- Dockerized local environment for backend, frontend, and database.
 
 ## Architecture
 
-- Package-by-feature modular monolith under [`backend/src/main/java/com/complyai`](backend/src/main/java/com/complyai)
-- DTO-first REST API design under `/api/v1/**`
-- Shared database multi-tenancy with explicit repository and service-level tenant checks
-- Stateless JWT security with Spring Security method authorization
-- Flyway migrations for schema creation and demo seed data
-- Centralized exception handling with consistent API error responses
-- Audit log service used by authentication, inventory, consent, requests, and AI analysis
+```mermaid
+flowchart LR
+    browser["React frontend"]
+    api["Spring Boot REST API"]
+    security["JWT security and role checks"]
+    modules["Domain modules"]
+    flyway["Flyway migrations"]
+    postgres["PostgreSQL"]
+    ai["Compliance AI provider interface"]
+    audit["Audit log service"]
 
-## Repository Layout
-
-- [`backend`](backend) - Spring Boot API, domain modules, migrations, and tests
-- [`frontend`](frontend) - Vite React SPA
-- [`docs`](docs) - architecture, security, API, deployment, and testing notes
-- [`infra`](infra) - Docker Compose and Nginx configuration
-- [`scripts`](scripts) - local helper scripts and seed notes
-
-## Demo Credentials
-
-All seeded demo users use the password `password`.
-
-- `superadmin@complyai.dev`
-- `tenantadmin@northwind.dev`
-- `compliance@northwind.dev`
-- `user@northwind.dev`
-- `tenantadmin@blueharbor.dev`
-- `compliance@blueharbor.dev`
-- `user@blueharbor.dev`
-
-Recommended account for exploring the main tenant-admin flow:
-
-```text
-tenantadmin@northwind.dev / password
+    browser --> api
+    api --> security
+    security --> modules
+    modules --> postgres
+    flyway --> postgres
+    modules --> audit
+    audit --> postgres
+    modules --> ai
 ```
 
-## Run With Docker
+End-to-end pipeline:
 
-From the repository root:
+1. Users authenticate through the backend and receive a JWT.
+2. The frontend sends tenant-scoped API requests with the token.
+3. Spring Security validates identity, roles, and access boundaries.
+4. Domain services apply workflow rules for inventory, consent, requests, users, tenants, dashboards, and AI scans.
+5. JPA repositories persist state to PostgreSQL.
+6. Flyway maintains schema and seed data.
+7. Audit logging records important actions for traceability.
+
+## Tech Stack
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| Frontend | React, TypeScript, Vite, React Router, React Query, Axios, Material UI | Browser application and API client |
+| Backend | Java 21, Spring Boot, Spring Web, Spring Security, Spring Data JPA | REST API, domain services, authentication, persistence |
+| Database | PostgreSQL, Flyway | Durable storage and schema migrations |
+| AI boundary | Provider interface with mock implementation | Repeatable compliance analysis without external API dependencies |
+| DevOps | Docker, Docker Compose, GitHub Actions | Local runtime and CI |
+| Testing | JUnit 5, Mockito, Testcontainers, Vitest, React Testing Library | Backend, integration, and frontend regression coverage |
+
+## Data Flow
+
+1. Ingestion: users enter inventory, consent, request, tenant, user, and AI-scan data through the React UI or REST API.
+2. Processing: backend controllers validate payloads and delegate to services for tenant access checks, workflow rules, and business validation.
+3. Storage: JPA repositories persist normalized domain entities in PostgreSQL.
+4. Transformation: dashboard and compliance services aggregate operational metrics, risk indicators, and recent activity.
+5. Serving: REST endpoints return DTOs to the frontend for tables, forms, dashboards, and detail views.
+
+## Setup Instructions
+
+### Prerequisites
+
+- Java 21
+- Node.js 20 or later
+- Docker Desktop
+- Git
+
+### Environment Variables
+
+Copy the example environment file before running locally:
+
+```bash
+cp .env.example .env
+```
+
+Important variables:
+
+| Variable | Purpose |
+|---|---|
+| `DB_URL` | JDBC URL for PostgreSQL |
+| `DB_USERNAME` | Database username |
+| `DB_PASSWORD` | Database password |
+| `JWT_SECRET` | Secret used to sign access tokens |
+| `JWT_EXPIRY_MINUTES` | Access-token lifetime |
+| `CORS_ORIGINS` | Allowed frontend origins |
+| `AI_MODE` | AI provider mode; currently `mock` |
+| `VITE_API_BASE_URL` | Frontend API base URL |
+
+### Docker Setup
+
+Run the full stack:
 
 ```powershell
 docker compose -f .\infra\docker-compose.yml up --build
 ```
 
-URLs:
+Local URLs:
 
-- Frontend: [http://localhost:8081](http://localhost:8081)
-- Backend API: [http://localhost:8080](http://localhost:8080)
-- Swagger UI: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
-- Health: [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health)
+- Frontend: `http://localhost:8081`
+- Backend API: `http://localhost:8080`
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- Health: `http://localhost:8080/actuator/health`
 
-## Run Locally
+### Local Run Steps
 
-Backend requires Java 21 and PostgreSQL.
+Start PostgreSQL with Docker or an equivalent local instance.
+
+Run the backend:
 
 ```powershell
 cd backend
 .\mvnw.cmd spring-boot:run
 ```
 
-Frontend requires Node 20+.
+Run the frontend:
 
 ```powershell
 cd frontend
@@ -104,79 +133,101 @@ npm install
 npm run dev
 ```
 
-## Test Commands
+## Project Structure
 
-Backend unit tests:
+```text
+.
+|-- backend/
+|   |-- src/main/java/com/complyai/
+|   |   |-- ai/                  # AI analysis boundary and persistence
+|   |   |-- audit/               # Audit log controller, service, repository
+|   |   |-- auth/                # Login and token issuance
+|   |   |-- common/              # Shared DTOs, enums, exceptions, utilities
+|   |   |-- config/              # Spring, OpenAPI, JPA, and web config
+|   |   |-- consent/             # Consent record workflow
+|   |   |-- dashboard/           # Aggregated compliance metrics
+|   |   |-- inventory/           # Personal data inventory records
+|   |   |-- request/             # Data subject request workflow
+|   |   |-- security/            # JWT filter, principal, access utilities
+|   |   |-- tenant/              # Tenant access evaluation
+|   |   |-- tenantmanagement/    # Tenant administration
+|   |   |-- user/                # User and role management
+|   |-- src/main/resources/db/migration/ # Flyway migrations and demo seed data
+|   |-- src/test/               # Unit and integration tests
+|-- frontend/
+|   |-- src/api/                # Axios client and service wrappers
+|   |-- src/components/         # Shared UI components
+|   |-- src/features/           # Page-level product features
+|   |-- src/layouts/            # Application shell
+|   |-- src/routes/             # Auth and role route guards
+|-- docs/                       # Architecture, API, deployment, testing, and security notes
+|-- infra/                      # Docker Compose and Nginx config
+|-- scripts/                    # Local helper scripts and seed notes
+```
+
+## Key Components
+
+### ETL Pipeline
+
+ComplyAI does not use a traditional batch ETL process. Its operational ingestion is API-driven: user actions create and update normalized domain records that are immediately available to dashboard and audit views.
+
+### Streaming Pipeline
+
+No message broker is currently included. Audit logs provide an append-only event record that can later feed notifications, async processing, or analytics exports.
+
+### dbt Models
+
+No dbt project is present. If analytical reporting becomes a requirement, PostgreSQL tables for inventory, consent, requests, tenants, users, AI analysis, and audit logs can be modeled downstream in dbt.
+
+### API Layer
+
+The API is organized by feature under `/api/v1/**`. Controllers expose DTO-first contracts, services enforce workflow and tenant rules, repositories handle persistence, and `GlobalExceptionHandler` standardizes API errors.
+
+### Data Quality Checks
+
+Data quality is enforced with validation annotations, service-level workflow rules, tenant access checks, Flyway constraints, and automated tests. The request workflow also centralizes allowed status transitions in `RequestWorkflowRules`.
+
+## Testing
+
+Backend tests:
 
 ```powershell
 cd backend
 .\mvnw.cmd test
 ```
 
-Frontend build and tests:
+Frontend tests and build:
 
 ```powershell
 cd frontend
 npm install
+npm run test
 npm run build
-npx vitest run --maxWorkers=1 --reporter=basic
 ```
 
-Docker-based backend test example:
+The CI workflow runs backend and frontend checks to catch regressions in domain rules, integration flows, route guards, and UI behavior.
 
-```powershell
-docker run --rm `
-  -e TESTCONTAINERS_RYUK_DISABLED=true `
-  -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal `
-  --add-host=host.docker.internal:host-gateway `
-  -v //var/run/docker.sock:/var/run/docker.sock `
-  -v ${PWD}\backend:/workspace `
-  -w /workspace `
-  maven:3.9.9-eclipse-temurin-21 `
-  sh -lc "./mvnw test"
-```
+## Troubleshooting
 
-## Key Workflows
-
-- Login with a seeded user and receive a JWT
-- Create and list data inventory records
-- Create, assign, and transition data subject requests through the approved workflow
-- Create and update consent records while tracking expired or missing evidence
-- Review dashboard metrics and recent audit events
-- Run a mock AI compliance scan and persist the result
-- Verify tenant isolation through tenant-scoped API access
-
-## Design Notes
-
-- Explicit tenant filtering is used instead of hidden ORM multitenancy so access boundaries stay visible in repositories and services.
-- Flyway migrations keep schema changes repeatable and make local setup predictable.
-- The AI module is intentionally mock-first, so the project works without external API keys while keeping a clean provider contract for future integrations.
-- Audit logging is append-only for traceability across compliance-sensitive workflows.
-- Docker Compose is the recommended local path because it runs PostgreSQL, backend, and frontend with consistent configuration.
-
-## Debugging Notes
-
-- If Docker API calls fail, start Docker Desktop first.
-- If Flyway reports a checksum mismatch, do not edit old applied migrations; add a new migration instead.
-- If the frontend loads but API calls fail, check `CORS_ORIGINS` and `VITE_API_BASE_URL`.
-- If JWT calls fail, verify that the backend `JWT_SECRET` matches the runtime environment.
-
-## Known Limitations
-
-- Refresh tokens are not implemented.
-- File ingestion is limited to pasted text and simple `.txt` / `.csv` content.
-- AI output is deterministic mock analysis, not legal or regulatory advice.
-- Tenant billing, invitation email, and attachment storage are roadmap items.
+| Issue | Fix |
+|---|---|
+| Backend cannot connect to PostgreSQL | Check `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, and confirm Docker is running |
+| Flyway migration fails | Do not edit applied migrations; add a new migration for schema changes |
+| Login succeeds but API calls fail | Verify `JWT_SECRET` and token expiry settings |
+| Frontend cannot reach the API | Check `VITE_API_BASE_URL` and `CORS_ORIGINS` |
+| Docker frontend runs but backend is unhealthy | Inspect backend logs with `docker compose -f .\infra\docker-compose.yml logs backend` |
+| Testcontainers tests fail | Ensure Docker Desktop is running and accessible |
 
 ## Future Improvements
 
-- Refresh-token rotation
-- Password reset and invitation flows
-- Report exports and reminders
-- S3-backed attachment storage
-- Richer compliance rules engine
-- Real LLM provider integration with prompt and version observability
+- Add refresh-token rotation and password reset workflows.
+- Add invitation and onboarding emails.
+- Add file attachment storage for evidence documents.
+- Replace mock AI with a versioned provider integration.
+- Add notification events for request assignments and due dates.
+- Add reporting exports for audits and compliance reviews.
+- Introduce a downstream analytics layer for tenant-level trend reporting.
 
 ## Compliance Disclaimer
 
-ComplyAI is a technical compliance-support system. It is not legal advice and should not be used as a substitute for qualified legal or regulatory counsel.
+ComplyAI is a technical compliance-support system. It is not legal or regulatory advice.

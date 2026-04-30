@@ -8,6 +8,7 @@ frontend/*.tsbuildinfo
 .edge-profile*/
 .git-publish/
 local_only/
+ENGINEERING_NOTES.md
 login-page.png
 .idea/
 .vscode/
